@@ -1,3 +1,10 @@
+## 0.1.1
+
+* Migrated from deprecated `dart:html` and `dart:js_util` to `package:web` and `dart:js_interop`
+* Fixed compatibility with latest Flutter/Dart versions
+* Improved static analysis score
+* No breaking changes - all APIs remain the same
+
 ## 0.1.0
 
 * Initial release

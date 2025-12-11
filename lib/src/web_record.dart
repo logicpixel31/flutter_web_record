@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'dart:html' as html;
-import 'dart:js_util' as js_util;
+import 'dart:js_interop';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:web/web.dart' as web;
 import 'dart:developer' as developer;
 
 // ============================================================================
@@ -46,11 +46,9 @@ class _RecordingLogger {
     Object? error,
     StackTrace? stackTrace,
   }) {
-    // Call user callback if provided
     _callback?.call(message,
         level: level, error: error, stackTrace: stackTrace);
 
-    // Also log to developer console if enabled (only in debug mode)
     if (_useDevLog && kDebugMode) {
       final levelValue = _getLevelValue(level);
       developer.log(
@@ -66,13 +64,13 @@ class _RecordingLogger {
   static int _getLevelValue(RecordingLogLevel level) {
     switch (level) {
       case RecordingLogLevel.debug:
-        return 500; // Level.FINE
+        return 500;
       case RecordingLogLevel.info:
-        return 800; // Level.INFO
+        return 800;
       case RecordingLogLevel.warning:
-        return 900; // Level.WARNING
+        return 900;
       case RecordingLogLevel.error:
-        return 1000; // Level.SEVERE
+        return 1000;
     }
   }
 
@@ -91,7 +89,6 @@ class _RecordingLogger {
 // CONFIGURATION CLASSES
 // ============================================================================
 
-/// Configuration for the recording indicator UI
 class RecordingIndicatorConfig {
   final Color recordingColor;
   final Color pausedColor;
@@ -118,7 +115,6 @@ class RecordingIndicatorConfig {
   });
 }
 
-/// Configuration for control buttons
 class ControlButtonConfig {
   final IconData? pauseIcon;
   final IconData? playIcon;
@@ -145,7 +141,6 @@ class ControlButtonConfig {
   });
 }
 
-/// Configuration for video recording settings
 class RecordingConfig {
   final int idealWidth;
   final int idealHeight;
@@ -166,22 +161,13 @@ class RecordingConfig {
   });
 }
 
-/// Audio capture mode options
 enum AudioCaptureMode {
-  /// Capture system audio (what you hear from your computer)
   system,
-
-  /// Capture microphone audio
   microphone,
-
-  /// Capture both system and microphone audio
   both,
-
-  /// No audio capture
   none,
 }
 
-/// Result returned after recording
 class RecordingResult {
   final Uint8List fileBytes;
   final String fileName;
@@ -212,10 +198,7 @@ class RecordingResult {
 // MAIN SCREEN RECORDER
 // ============================================================================
 
-/// Main screen recorder that manages the recording process
-
 class ScreenRecorder {
-  /// Start screen recording with optional configurations
   static Future<RecordingResult?> startRecording(
     BuildContext context, {
     RecordingConfig recordingConfig = const RecordingConfig(),
@@ -224,10 +207,9 @@ class ScreenRecorder {
     bool showPreview = false,
     Function(RecordingResult)? onRecordingComplete,
     VoidCallback? onRecordingCancelled,
-    RecordingLogCallback? onLog, // NEW: User callback for logs
-    bool enableLogging = true, // NEW: Enable/disable logging
+    RecordingLogCallback? onLog,
+    bool enableLogging = true,
   }) async {
-    // Configure logger with user callback
     _RecordingLogger.configure(
       callback: onLog,
       useDevLog: enableLogging,
@@ -236,10 +218,9 @@ class ScreenRecorder {
     try {
       _RecordingLogger.info('Starting screen recording request...');
 
-      // Get media stream
       final mediaStream = await _getMediaStream(recordingConfig);
 
-      if (mediaStream == null || mediaStream.getTracks().isEmpty) {
+      if (mediaStream == null || mediaStream.getTracks().toDart.isEmpty) {
         _RecordingLogger.warning('User cancelled screen selection');
         onRecordingCancelled?.call();
         return null;
@@ -247,11 +228,10 @@ class ScreenRecorder {
 
       _RecordingLogger.info('Media stream obtained successfully');
       _RecordingLogger.debug(
-          'Video tracks: ${mediaStream.getVideoTracks().length}');
+          'Video tracks: ${mediaStream.getVideoTracks().toDart.length}');
       _RecordingLogger.debug(
-          'Audio tracks: ${mediaStream.getAudioTracks().length}');
+          'Audio tracks: ${mediaStream.getAudioTracks().toDart.length}');
 
-      // Show recording overlay
       final completer = Completer<RecordingResult?>();
 
       if (context.mounted) {
@@ -301,53 +281,45 @@ class ScreenRecorder {
     }
   }
 
-  static Future<html.MediaStream?> _getMediaStream(
+  static Future<web.MediaStream?> _getMediaStream(
       RecordingConfig config) async {
     try {
       _RecordingLogger.debug('Requesting display media with constraints');
 
-      final navigator = html.window.navigator;
-
-      if (!js_util.hasProperty(navigator, 'mediaDevices')) {
-        _RecordingLogger.error('MediaDevices API not available');
-        return null;
-      }
+      final navigator = web.window.navigator;
+      final mediaDevices = navigator.mediaDevices;
 
       final audioConstraints = _getAudioConstraints(config.audioCaptureMode);
 
-      final constraints = {
-        'video': {
-          'cursor': config.showCursor ? 'always' : 'never',
-          'width': {'ideal': config.idealWidth},
-          'height': {'ideal': config.idealHeight},
-          'frameRate': {'ideal': config.idealFrameRate},
-        },
+      final constraints = <String, JSAny?>{
+        'video': <String, JSAny?>{
+          'cursor': (config.showCursor ? 'always' : 'never').toJS,
+          'width': <String, JSAny?>{'ideal': config.idealWidth.toJS}.jsify(),
+          'height': <String, JSAny?>{'ideal': config.idealHeight.toJS}.jsify(),
+          'frameRate': <String, JSAny?>{'ideal': config.idealFrameRate.toJS}.jsify(),
+        }.jsify(),
         'audio': audioConstraints,
-      };
+      }.jsify() as web.DisplayMediaStreamOptions;
 
       _RecordingLogger.debug('Audio mode: ${config.audioCaptureMode.name}');
 
-      final streamPromise = js_util.callMethod(navigator.mediaDevices!,
-          'getDisplayMedia', [js_util.jsify(constraints)]);
-
-      final stream = await js_util.promiseToFuture(streamPromise);
-      final mediaStream = stream as html.MediaStream;
+      final streamPromise = mediaDevices.getDisplayMedia(constraints);
+      final stream = await streamPromise.toDart;
 
       _RecordingLogger.info('Media stream obtained successfully');
       _RecordingLogger.debug(
-          'Video tracks: ${mediaStream.getVideoTracks().length}');
+          'Video tracks: ${stream.getVideoTracks().toDart.length}');
       _RecordingLogger.debug(
-          'Audio tracks: ${mediaStream.getAudioTracks().length}');
+          'Audio tracks: ${stream.getAudioTracks().toDart.length}');
 
-      // Add microphone if needed
       if (config.audioCaptureMode == AudioCaptureMode.microphone ||
           config.audioCaptureMode == AudioCaptureMode.both) {
         _RecordingLogger.debug('Requesting microphone access');
         final micStream = await _getMicrophoneStream();
         if (micStream != null) {
-          final micTracks = micStream.getAudioTracks();
+          final micTracks = micStream.getAudioTracks().toDart;
           for (var track in micTracks) {
-            mediaStream.addTrack(track);
+            stream.addTrack(track);
           }
           _RecordingLogger.info('Microphone tracks added: ${micTracks.length}');
         } else {
@@ -355,7 +327,7 @@ class ScreenRecorder {
         }
       }
 
-      return mediaStream;
+      return stream;
     } catch (e, stackTrace) {
       _RecordingLogger.error(
         'Error getting media stream',
@@ -366,45 +338,44 @@ class ScreenRecorder {
     }
   }
 
-  static dynamic _getAudioConstraints(AudioCaptureMode mode) {
+  static JSAny _getAudioConstraints(AudioCaptureMode mode) {
     switch (mode) {
       case AudioCaptureMode.system:
-        return {
-          'echoCancellation': false,
-          'noiseSuppression': false,
-          'autoGainControl': false,
-        };
+        return <String, JSBoolean>{
+          'echoCancellation': false.toJS,
+          'noiseSuppression': false.toJS,
+          'autoGainControl': false.toJS,
+        }.jsify()!;
       case AudioCaptureMode.microphone:
-        return false;
+        return false.toJS;
       case AudioCaptureMode.both:
-        return {
-          'echoCancellation': false,
-          'noiseSuppression': false,
-          'autoGainControl': false,
-        };
+        return <String, JSBoolean>{
+          'echoCancellation': false.toJS,
+          'noiseSuppression': false.toJS,
+          'autoGainControl': false.toJS,
+        }.jsify()!;
       case AudioCaptureMode.none:
-        return false;
+        return false.toJS;
     }
   }
 
-  static Future<html.MediaStream?> _getMicrophoneStream() async {
+  static Future<web.MediaStream?> _getMicrophoneStream() async {
     try {
-      final navigator = html.window.navigator;
+      final navigator = web.window.navigator;
+      final mediaDevices = navigator.mediaDevices;
 
-      final constraints = js_util.jsify({
-        'audio': {
-          'echoCancellation': true,
-          'noiseSuppression': true,
-          'autoGainControl': true,
-        },
-        'video': false,
-      });
+      final constraints = <String, JSAny?>{
+        'audio': <String, JSBoolean>{
+          'echoCancellation': true.toJS,
+          'noiseSuppression': true.toJS,
+          'autoGainControl': true.toJS,
+        }.jsify(),
+        'video': false.toJS,
+      }.jsify() as web.MediaStreamConstraints;
 
-      final streamPromise = js_util
-          .callMethod(navigator.mediaDevices!, 'getUserMedia', [constraints]);
-
-      final stream = await js_util.promiseToFuture(streamPromise);
-      return stream as html.MediaStream;
+      final streamPromise = mediaDevices.getUserMedia(constraints);
+      final stream = await streamPromise.toDart;
+      return stream;
     } catch (e) {
       _RecordingLogger.warning('Could not get microphone stream: $e');
       return null;
@@ -427,9 +398,9 @@ class ScreenRecorder {
 
 class ScreenRecordingOverlay {
   static OverlayEntry? _overlayEntry;
-  static html.MediaRecorder? _mediaRecorder;
-  static html.MediaStream? _mediaStream;
-  static final List<html.Blob> _recordedChunks = [];
+  static web.MediaRecorder? _mediaRecorder;
+  static web.MediaStream? _mediaStream;
+  static final List<web.Blob> _recordedChunks = [];
   static Timer? _timer;
   static int _seconds = 0;
   static bool _isPaused = false;
@@ -437,7 +408,7 @@ class ScreenRecordingOverlay {
 
   static void show(
     BuildContext context, {
-    required html.MediaStream mediaStream,
+    required web.MediaStream mediaStream,
     required RecordingConfig recordingConfig,
     required RecordingIndicatorConfig indicatorConfig,
     required ControlButtonConfig controlConfig,
@@ -452,25 +423,30 @@ class ScreenRecordingOverlay {
     final mimeType = _getSupportedMimeType();
     _RecordingLogger.info('Using MIME type: $mimeType');
 
-    _mediaRecorder = html.MediaRecorder(mediaStream, {
-      'mimeType': mimeType,
-      'videoBitsPerSecond': recordingConfig.videoBitsPerSecond,
-    });
+    final options = <String, JSAny?>{
+      'mimeType': mimeType.toJS,
+      'videoBitsPerSecond': recordingConfig.videoBitsPerSecond.toJS,
+    }.jsify() as web.MediaRecorderOptions;
 
-    _mediaRecorder!.addEventListener('dataavailable', (event) {
-      final html.BlobEvent blobEvent = event as html.BlobEvent;
-      if (blobEvent.data != null && blobEvent.data!.size > 0) {
-        _recordedChunks.add(blobEvent.data!);
-        _RecordingLogger.debug('Chunk recorded: ${blobEvent.data!.size} bytes');
-      }
-    });
+    _mediaRecorder = web.MediaRecorder(mediaStream, options);
 
-    _mediaRecorder!.addEventListener('stop', (event) async {
-      _RecordingLogger.info('Recording stopped - processing...');
-      final result = await _processRecording();
-      hide();
-      _onComplete?.call(result);
-    });
+    _mediaRecorder!.addEventListener(
+        'dataavailable',
+        ((web.Event event) {
+          final blobEvent = event as web.BlobEvent;
+          final data = blobEvent.data;
+          if (data != null && data.size > 0) {
+            _recordedChunks.add(data);
+            _RecordingLogger.debug('Chunk recorded: ${data.size} bytes');
+          }
+        }.toJS));
+
+    _mediaRecorder!.addEventListener(
+        'stop',
+        ((web.Event event) {
+          _RecordingLogger.info('Recording stopped - processing...');
+          _handleRecordingStop();
+        }.toJS));
 
     _mediaRecorder!.start(1000);
     _RecordingLogger.info('Recording started');
@@ -482,10 +458,13 @@ class ScreenRecordingOverlay {
       }
     });
 
-    mediaStream.getTracks().first.onEnded.listen((event) {
-      _RecordingLogger.info('Stream ended by user');
-      _stopRecording();
-    });
+    final tracks = mediaStream.getTracks().toDart;
+    if (tracks.isNotEmpty) {
+      tracks.first.onended = ((web.Event event) {
+        _RecordingLogger.info('Stream ended by user');
+        _stopRecording();
+      }.toJS);
+    }
 
     _overlayEntry = OverlayEntry(
       builder: (context) => _RecordingIndicator(
@@ -511,7 +490,7 @@ class ScreenRecordingOverlay {
     ];
 
     for (var type in types) {
-      if (html.MediaRecorder.isTypeSupported(type)) {
+      if (web.MediaRecorder.isTypeSupported(type)) {
         return type;
       }
     }
@@ -537,14 +516,15 @@ class ScreenRecordingOverlay {
     _RecordingLogger.info('Stopping recording...');
     _timer?.cancel();
 
-    if (_mediaRecorder != null && _mediaRecorder!.state != 'inactive') {
-      _mediaRecorder!.stop();
+    if (_mediaRecorder?.state != 'inactive') {
+      _mediaRecorder?.stop();
     }
 
-    _mediaStream?.getTracks().forEach((track) {
+    final tracks = _mediaStream?.getTracks().toDart ?? [];
+    for (var track in tracks) {
       track.stop();
       _RecordingLogger.debug('Track stopped: ${track.kind}');
-    });
+    }
   }
 
   static void _cancelRecording() {
@@ -553,6 +533,17 @@ class ScreenRecordingOverlay {
     _recordedChunks.clear();
     hide();
     _onComplete?.call(null);
+  }
+
+  static void _handleRecordingStop() {
+    _processRecording().then((result) {
+      hide();
+      _onComplete?.call(result);
+    }).catchError((error) {
+      _RecordingLogger.error('Error handling recording stop', error: error);
+      hide();
+      _onComplete?.call(null);
+    });
   }
 
   static Future<RecordingResult?> _processRecording() async {
@@ -564,17 +555,28 @@ class ScreenRecordingOverlay {
         return null;
       }
 
-      final blob = html.Blob(_recordedChunks, 'video/webm');
+      final blobParts = _recordedChunks.map((b) => b as JSAny).toList().toJS;
+      final blob = web.Blob(
+        blobParts,
+        web.BlobPropertyBag(type: 'video/webm'),
+      );
       _RecordingLogger.debug('Blob created: ${blob.size} bytes');
 
-      final blobUrl = html.Url.createObjectUrlFromBlob(blob);
+      final blobUrl = web.URL.createObjectURL(blob);
       _RecordingLogger.debug('Blob URL created');
 
-      final reader = html.FileReader();
+      final reader = web.FileReader();
       reader.readAsArrayBuffer(blob);
-      await reader.onLoadEnd.first;
 
-      final Uint8List fileBytes = reader.result as Uint8List;
+      final completer = Completer<void>();
+      reader.onloadend = ((web.Event event) {
+        completer.complete();
+      }.toJS);
+      await completer.future;
+
+      final result = reader.result;
+      final buffer = (result as JSArrayBuffer).toDart;
+      final Uint8List fileBytes = buffer.asUint8List();
       final String fileName =
           'screen_recording_${DateTime.now().millisecondsSinceEpoch}.webm';
 
@@ -649,51 +651,23 @@ class _RecordingIndicator extends StatelessWidget {
     final alignment = indicatorConfig.position;
     const padding = 20.0;
 
-    // Use alignment-based positioning to avoid cutoff
     if (alignment == Alignment.topRight) {
-      return Positioned(
-        top: padding,
-        right: padding,
-        child: child,
-      );
+      return Positioned(top: padding, right: padding, child: child);
     } else if (alignment == Alignment.topLeft) {
-      return Positioned(
-        top: padding,
-        left: padding,
-        child: child,
-      );
+      return Positioned(top: padding, left: padding, child: child);
     } else if (alignment == Alignment.bottomRight) {
-      return Positioned(
-        bottom: padding,
-        right: padding,
-        child: child,
-      );
+      return Positioned(bottom: padding, right: padding, child: child);
     } else if (alignment == Alignment.bottomLeft) {
-      return Positioned(
-        bottom: padding,
-        left: padding,
-        child: child,
-      );
+      return Positioned(bottom: padding, left: padding, child: child);
     } else if (alignment == Alignment.topCenter) {
       return Positioned(
-        top: padding,
-        left: screenSize.width / 2 - 100, // Approximate centering
-        child: child,
-      );
+          top: padding, left: screenSize.width / 2 - 100, child: child);
     } else if (alignment == Alignment.bottomCenter) {
       return Positioned(
-        bottom: padding,
-        left: screenSize.width / 2 - 100, // Approximate centering
-        child: child,
-      );
+          bottom: padding, left: screenSize.width / 2 - 100, child: child);
     }
 
-    // Default to top right
-    return Positioned(
-      top: padding,
-      right: padding,
-      child: child,
-    );
+    return Positioned(top: padding, right: padding, child: child);
   }
 
   @override
@@ -753,10 +727,7 @@ class _RecordingIndicator extends StatelessWidget {
                   Text(
                     _formatTime(seconds),
                     style: indicatorConfig.timeTextStyle ??
-                        const TextStyle(
-                          fontSize: 14,
-                          color: Colors.white,
-                        ),
+                        const TextStyle(fontSize: 14, color: Colors.white),
                   ),
                 ],
               ),
@@ -855,15 +826,13 @@ class _RecordingPreviewDialogState extends State<RecordingPreviewDialog> {
   @override
   void initState() {
     super.initState();
-    // Generate unique view type for this video element
     _videoViewType = 'video-preview-${DateTime.now().millisecondsSinceEpoch}';
 
-    // Register the video element view factory
     // ignore: undefined_prefixed_name
     ui.platformViewRegistry.registerViewFactory(
       _videoViewType,
       (int viewId) {
-        final videoElement = html.VideoElement()
+        final videoElement = web.HTMLVideoElement()
           ..src = widget.result.blobUrl
           ..controls = true
           ..autoplay = false

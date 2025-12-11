@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'dart:html' as html;
+import 'package:web/web.dart' as web;
 import 'dart:ui' as ui;
 
 import 'package:flutter_web_record/flutter_web_record.dart';
-// Import your screen recorder file here
-// import 'your_screen_recorder.dart';
 
 void main() {
   runApp(const ScreenRecorderTestApp());
@@ -42,7 +40,6 @@ class _TestHomePageState extends State<TestHomePage> {
     setState(() {
       _status = status;
     });
-    // print('📱 Status: $status');
   }
 
   Future<void> _testBasicRecording() async {
@@ -286,83 +283,64 @@ class _TestHomePageState extends State<TestHomePage> {
   List<Widget> _buildTestWidgets() {
     return [
       _buildTestButton(
-        'Test 1: Basic Recording',
-        'Test default recording with no customization',
-        Icons.videocam,
-        Colors.blue,
-        _testBasicRecording,
-      ),
+          'Test 1: Basic Recording',
+          'Test default recording with no customization',
+          Icons.videocam,
+          Colors.blue,
+          _testBasicRecording),
       _buildTestButton(
-        'Test 2: With Preview',
-        'Test recording with preview dialog',
-        Icons.preview,
-        Colors.green,
-        _testWithPreview,
-      ),
+          'Test 2: With Preview',
+          'Test recording with preview dialog',
+          Icons.preview,
+          Colors.green,
+          _testWithPreview),
       _buildTestButton(
-        'Test 3: Custom Styling',
-        'Test custom colors, sizes, and positions',
-        Icons.palette,
-        Colors.purple,
-        _testCustomStyling,
-      ),
+          'Test 3: Custom Styling',
+          'Test custom colors, sizes, and positions',
+          Icons.palette,
+          Colors.purple,
+          _testCustomStyling),
+      _buildTestButton('Test 4: High Quality', 'Test 1440p @ 60fps recording',
+          Icons.hd, Colors.orange, _testHighQuality),
       _buildTestButton(
-        'Test 4: High Quality',
-        'Test 1440p @ 60fps recording',
-        Icons.hd,
-        Colors.orange,
-        _testHighQuality,
-      ),
+          'Test 5: No Audio',
+          'Test recording without audio and cursor',
+          Icons.volume_off,
+          Colors.red,
+          _testNoAudio),
       _buildTestButton(
-        'Test 5: No Audio',
-        'Test recording without audio and cursor',
-        Icons.volume_off,
-        Colors.red,
-        _testNoAudio,
-      ),
+          'Test 6: System Audio',
+          'Record audio playing on your computer',
+          Icons.volume_up,
+          Colors.teal,
+          _testSystemAudio),
+      _buildTestButton('Test 7: Microphone', 'Record only microphone audio',
+          Icons.mic, Colors.indigo, _testMicrophoneAudio),
       _buildTestButton(
-        'Test 6: System Audio',
-        'Record audio playing on your computer',
-        Icons.volume_up,
-        Colors.teal,
-        _testSystemAudio,
-      ),
-      _buildTestButton(
-        'Test 7: Microphone',
-        'Record only microphone audio',
-        Icons.mic,
-        Colors.indigo,
-        _testMicrophoneAudio,
-      ),
-      _buildTestButton(
-        'Test 8: System + Microphone',
-        'Record both system audio and microphone',
-        Icons.surround_sound,
-        Colors.deepPurple,
-        _testBothAudio,
-      ),
+          'Test 8: System + Microphone',
+          'Record both system audio and microphone',
+          Icons.surround_sound,
+          Colors.deepPurple,
+          _testBothAudio),
     ];
   }
 
   @override
   Widget build(BuildContext context) {
     final testWidgets = _buildTestWidgets();
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Screen Recorder Test Suite'),
         actions: [
           if (_recordings.isNotEmpty)
             IconButton(
-              icon: const Icon(Icons.clear_all),
-              tooltip: 'Clear all recordings',
-              onPressed: _clearRecordings,
-            ),
+                icon: const Icon(Icons.clear_all),
+                tooltip: 'Clear all recordings',
+                onPressed: _clearRecordings),
         ],
       ),
       body: Column(
         children: [
-          // Status Bar
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -372,91 +350,58 @@ class _TestHomePageState extends State<TestHomePage> {
                 const Icon(Icons.info_outline, color: Colors.blue),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(
-                    _status,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
+                    child: Text(_status,
+                        style: const TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.w500))),
               ],
             ),
           ),
-
-          // Test Buttons
           Expanded(
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                const Text(
-                  'Test Cases',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                const Text('Test Cases',
+                    style:
+                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 16),
-
-                // Grid for test buttons: 2 per row, smaller boxes
                 GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio:
-                        4.5, // Increased to make boxes shorter and more compact
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 8,
-                  ),
+                      crossAxisCount: 2,
+                      childAspectRatio: 4.5,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 8),
                   itemCount: testWidgets.length,
                   itemBuilder: (context, index) => testWidgets[index],
                 ),
-
                 const SizedBox(height: 24),
                 const Divider(),
                 const SizedBox(height: 16),
-
-                // Recordings List
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Recordings (${_recordings.length})',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    Text('Recordings (${_recordings.length})',
+                        style: const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
                     if (_recordings.isNotEmpty)
-                      Text(
-                        'Total: ${_getTotalSize()} MB',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
-                      ),
+                      Text('Total: ${_getTotalSize()} MB',
+                          style:
+                              TextStyle(fontSize: 14, color: Colors.grey[600])),
                   ],
                 ),
                 const SizedBox(height: 16),
-
                 if (_recordings.isEmpty)
                   const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(32),
-                      child: Text(
-                        'No recordings yet.\nTry recording something!',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                    ),
-                  )
+                      child: Padding(
+                          padding: EdgeInsets.all(32),
+                          child: Text(
+                              'No recordings yet.\nTry recording something!',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.grey))))
                 else
-                  ..._recordings.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final recording = entry.value;
-                    return _buildRecordingCard(index, recording);
-                  }),
+                  ..._recordings.asMap().entries.map(
+                      (entry) => _buildRecordingCard(entry.key, entry.value)),
               ],
             ),
           ),
@@ -465,55 +410,39 @@ class _TestHomePageState extends State<TestHomePage> {
     );
   }
 
-  Widget _buildTestButton(
-    String title,
-    String description,
-    IconData icon,
-    Color color,
-    VoidCallback onPressed,
-  ) {
+  Widget _buildTestButton(String title, String description, IconData icon,
+      Color color, VoidCallback onPressed) {
     return Card(
       child: InkWell(
         onTap: onPressed,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.all(
-              12), // Reduced padding for smaller appearance
+          padding: const EdgeInsets.all(12),
           child: Row(
             children: [
               Container(
-                width: 40, // Slightly smaller icon container
-                height: 40,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, color: color, size: 24), // Smaller icon
-              ),
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8)),
+                  child: Icon(icon, color: color, size: 24)),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 15, // Slightly smaller title
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    Text(title,
+                        style: const TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),
-                    Text(
-                      description,
-                      style: TextStyle(
-                        fontSize: 12, // Smaller description font
-                        color: Colors.grey[600],
-                      ),
-                    ),
+                    Text(description,
+                        style:
+                            TextStyle(fontSize: 12, color: Colors.grey[600])),
                   ],
                 ),
               ),
-              const Icon(Icons.play_arrow, size: 20), // Smaller play icon
+              const Icon(Icons.play_arrow, size: 20),
             ],
           ),
         ),
@@ -524,44 +453,34 @@ class _TestHomePageState extends State<TestHomePage> {
   Widget _buildRecordingCard(int index, RecordingResult recording) {
     final sizeInMB =
         (recording.fileBytes.length / 1024 / 1024).toStringAsFixed(2);
-
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: Colors.blue,
-          child: Text('${index + 1}'),
-        ),
+            backgroundColor: Colors.blue, child: Text('${index + 1}')),
         title: Text(recording.fileName),
         subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Duration: ${recording.durationSeconds}s'),
-            Text('Size: $sizeInMB MB'),
-          ],
-        ),
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Duration: ${recording.durationSeconds}s'),
+              Text('Size: $sizeInMB MB')
+            ]),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              icon: const Icon(Icons.play_circle_outline, color: Colors.green),
-              tooltip: 'Play video',
-              onPressed: () => _showVideoPlayer(recording),
-            ),
+                icon:
+                    const Icon(Icons.play_circle_outline, color: Colors.green),
+                tooltip: 'Play video',
+                onPressed: () => _showVideoPlayer(recording)),
             IconButton(
-              icon: const Icon(Icons.info_outline),
-              tooltip: 'Show info',
-              onPressed: () => _showRecordingInfo(recording),
-            ),
+                icon: const Icon(Icons.info_outline),
+                tooltip: 'Show info',
+                onPressed: () => _showRecordingInfo(recording)),
             IconButton(
-              icon: const Icon(Icons.delete, color: Colors.red),
-              tooltip: 'Delete',
-              onPressed: () {
-                setState(() {
-                  _recordings.removeAt(index);
-                });
-              },
-            ),
+                icon: const Icon(Icons.delete, color: Colors.red),
+                tooltip: 'Delete',
+                onPressed: () => setState(() => _recordings.removeAt(index))),
           ],
         ),
       ),
@@ -570,9 +489,8 @@ class _TestHomePageState extends State<TestHomePage> {
 
   void _showVideoPlayer(RecordingResult recording) {
     showDialog(
-      context: context,
-      builder: (context) => VideoPlayerDialog(recording: recording),
-    );
+        context: context,
+        builder: (context) => VideoPlayerDialog(recording: recording));
   }
 
   void _showRecordingInfo(RecordingResult recording) {
@@ -594,9 +512,8 @@ class _TestHomePageState extends State<TestHomePage> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'))
         ],
       ),
     );
@@ -609,15 +526,10 @@ class _TestHomePageState extends State<TestHomePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 100,
-            child: Text(
-              label,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          Expanded(
-            child: Text(value),
-          ),
+              width: 100,
+              child: Text(label,
+                  style: const TextStyle(fontWeight: FontWeight.bold))),
+          Expanded(child: Text(value)),
         ],
       ),
     );
@@ -625,22 +537,14 @@ class _TestHomePageState extends State<TestHomePage> {
 
   String _getTotalSize() {
     final totalBytes = _recordings.fold<int>(
-      0,
-      (sum, recording) => sum + recording.fileBytes.length,
-    );
+        0, (sum, recording) => sum + recording.fileBytes.length);
     return (totalBytes / 1024 / 1024).toStringAsFixed(2);
   }
 }
 
-// ============================================================================
-// VIDEO PLAYER DIALOG
-// ============================================================================
-
 class VideoPlayerDialog extends StatefulWidget {
   final RecordingResult recording;
-
   const VideoPlayerDialog({super.key, required this.recording});
-
   @override
   State<VideoPlayerDialog> createState() => _VideoPlayerDialogState();
 }
@@ -651,45 +555,33 @@ class _VideoPlayerDialogState extends State<VideoPlayerDialog> {
   @override
   void initState() {
     super.initState();
-    // Generate unique view type for this video element
     _videoViewType = 'video-player-${DateTime.now().millisecondsSinceEpoch}';
-
-    // Import dart:ui as ui and dart:html as html at the top of the file
-    // Register the video element view factory
     // ignore: undefined_prefixed_name
-    ui.platformViewRegistry.registerViewFactory(
-      _videoViewType,
-      (int viewId) {
-        final videoElement = html.VideoElement()
-          ..src = widget.recording.blobUrl
-          ..controls = true
-          ..autoplay = false
-          ..style.width = '100%'
-          ..style.height = '100%'
-          ..style.objectFit = 'contain'
-          ..style.border = 'none'
-          ..style.backgroundColor = 'black';
-        return videoElement;
-      },
-    );
+    ui.platformViewRegistry.registerViewFactory(_videoViewType, (int viewId) {
+      final videoElement = web.HTMLVideoElement()
+        ..src = widget.recording.blobUrl
+        ..controls = true
+        ..autoplay = false
+        ..style.width = '100%'
+        ..style.height = '100%'
+        ..style.objectFit = 'contain'
+        ..style.border = 'none'
+        ..style.backgroundColor = 'black';
+      return videoElement;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final sizeInMB =
         (widget.recording.fileBytes.length / 1024 / 1024).toStringAsFixed(2);
-
     return Dialog(
       backgroundColor: Colors.black,
       child: Container(
-        constraints: const BoxConstraints(
-          maxWidth: 900,
-          maxHeight: 700,
-        ),
+        constraints: const BoxConstraints(maxWidth: 900, maxHeight: 700),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Header
             Container(
               padding: const EdgeInsets.all(16),
               color: Colors.grey[900],
@@ -701,41 +593,28 @@ class _VideoPlayerDialogState extends State<VideoPlayerDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Text(widget.recording.fileName,
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold)),
                         Text(
-                          widget.recording.fileName,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          '${widget.recording.durationSeconds}s • $sizeInMB MB',
-                          style: TextStyle(
-                            color: Colors.grey[400],
-                            fontSize: 12,
-                          ),
-                        ),
+                            '${widget.recording.durationSeconds}s • $sizeInMB MB',
+                            style: TextStyle(
+                                color: Colors.grey[400], fontSize: 12)),
                       ],
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
+                      icon: const Icon(Icons.close, color: Colors.white),
+                      onPressed: () => Navigator.of(context).pop()),
                 ],
               ),
             ),
-
-            // Video Player
             Expanded(
-              child: Container(
-                color: Colors.black,
-                child: HtmlElementView(viewType: _videoViewType),
-              ),
-            ),
-
-            // Footer with controls
+                child: Container(
+                    color: Colors.black,
+                    child: HtmlElementView(viewType: _videoViewType))),
             Container(
               padding: const EdgeInsets.all(16),
               color: Colors.grey[900],
@@ -743,20 +622,13 @@ class _VideoPlayerDialogState extends State<VideoPlayerDialog> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton.icon(
-                    onPressed: () {
-                      // Copy URL to clipboard or download
-                      ScaffoldMessenger.of(context).showSnackBar(
+                    onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Video URL: Available for download'),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                    },
+                            content: Text('Video URL: Available for download'),
+                            duration: Duration(seconds: 2))),
                     icon: const Icon(Icons.link),
                     label: const Text('Copy Link'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.white,
-                    ),
+                    style: TextButton.styleFrom(foregroundColor: Colors.white),
                   ),
                   const SizedBox(width: 8),
                   ElevatedButton.icon(
@@ -764,9 +636,8 @@ class _VideoPlayerDialogState extends State<VideoPlayerDialog> {
                     icon: const Icon(Icons.check),
                     label: const Text('Done'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                    ),
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white),
                   ),
                 ],
               ),
