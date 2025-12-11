@@ -1,5 +1,9 @@
 # flutter_web_record
 
+[![pub package](https://img.shields.io/pub/v/flutter_web_record.svg)](https://pub.dev/packages/flutter_web_record)
+[![GitHub](https://img.shields.io/github/stars/logicpixel31/flutter_web_record?style=social)](https://github.com/logicpixel31/flutter_web_record)
+
+
 A powerful Flutter web package for screen recording with audio support, pause/resume controls, customizable UI, and built-in preview functionality.
 
 
