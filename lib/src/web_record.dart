@@ -435,6 +435,7 @@ class ScreenRecordingOverlay {
         ((web.Event event) {
           final blobEvent = event as web.BlobEvent;
           final data = blobEvent.data;
+          // ignore: unnecessary_null_comparison
           if (data != null && data.size > 0) {
             _recordedChunks.add(data);
             _RecordingLogger.debug('Chunk recorded: ${data.size} bytes');
