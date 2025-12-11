@@ -1,0 +1,430 @@
+# flutter_web_record
+
+A powerful Flutter web package for screen recording with audio support, pause/resume controls, customizable UI, and built-in preview functionality.
+
+
+
+## Features
+
+- 🎥 **Screen Recording** - Capture screen with customizable quality settings
+- 🎤 **Multiple Audio Modes** - System audio, microphone, both, or none
+- ⏸️ **Pause/Resume** - Full control during recording
+- 🎨 **Customizable UI** - Fully customizable recording indicator and controls
+- 👁️ **Preview Dialog** - Optional preview before saving
+- 📦 **Easy Integration** - Returns video as bytes for upload/storage
+- 🌐 **Web Only** - Uses browser MediaRecorder API
+
+## Screenshots
+
+### Screen Share Selection
+<img src="screenshots/screenshareoption.png" alt="Screen Share Dialog" width="600"/>
+
+### Recording Controls
+<img src="screenshots/screen_record_controls.png" alt="Recording Controls" width="400"/>
+
+### Preview Dialog
+<img src="screenshots/screen_record_preview.png" alt="Preview Dialog" width="600"/>
+
+### Recordings List
+<img src="screenshots/screen_record_list.png" alt="Recording List" width="700"/>
+
+### Video Details & Playback
+<img src="screenshots/recorded_screen_details.png" alt="Video Details" width="700"/>
+
+## Platform Support
+
+| Platform | Support |
+|----------|---------|
+| Web      | ✅      |
+| Android  | ❌      |
+| iOS      | ❌      |
+| Windows  | ❌      |
+| macOS    | ❌      |
+| Linux    | ❌      |
+
+## Browser Compatibility
+
+| Browser | Support | Notes |
+|---------|---------|-------|
+| Chrome  | ✅ 72+  | Full support |
+| Edge    | ✅ 79+  | Full support |
+| Opera   | ✅ 60+  | Full support |
+| Firefox | ⚠️      | Requires flag |
+| Safari  | ❌      | Not supported |
+
+## Installation
+
+Add this to your package's `pubspec.yaml`:
+
+```yaml
+dependencies:
+  flutter_web_record: ^0.1.0
+```
+
+Then run:
+
+```bash
+flutter pub get
+```
+
+## Quick Start
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:flutter_web_record/flutter_web_record.dart';
+
+class MyRecordingScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: ElevatedButton(
+          onPressed: () async {
+            await ScreenRecorder.startRecording(
+              context,
+              onRecordingComplete: (result) {
+                print('Recording saved: ${result.fileName}');
+                print('Size: ${result.fileBytes.length} bytes');
+                // Upload or process the video
+              },
+              onRecordingCancelled: () {
+                print('Recording cancelled');
+              },
+            );
+          },
+          child: Text('Start Recording'),
+        ),
+      ),
+    );
+  }
+}
+```
+
+## Usage Examples
+
+### Basic Recording
+
+```dart
+final result = await ScreenRecorder.startRecording(
+  context,
+  onRecordingComplete: (result) {
+    // Handle completed recording
+    print('Duration: ${result.durationSeconds}s');
+    print('File: ${result.fileName}');
+  },
+);
+```
+
+### With Preview Dialog
+
+```dart
+await ScreenRecorder.startRecording(
+  context,
+  showPreview: true, // User can preview before saving
+  onRecordingComplete: (result) {
+    // Only called if user confirms in preview
+    uploadVideo(result.fileBytes);
+  },
+);
+```
+
+### Custom Quality Settings
+
+```dart
+await ScreenRecorder.startRecording(
+  context,
+  recordingConfig: RecordingConfig(
+    idealWidth: 1920,
+    idealHeight: 1080,
+    idealFrameRate: 60,
+    videoBitsPerSecond: 8000000, // 8 Mbps
+    captureAudio: true,
+    showCursor: true,
+    audioCaptureMode: AudioCaptureMode.both, // System + Mic
+  ),
+);
+```
+
+### Custom UI Styling
+
+```dart
+await ScreenRecorder.startRecording(
+  context,
+  indicatorConfig: RecordingIndicatorConfig(
+    recordingColor: Colors.red,
+    pausedColor: Colors.orange,
+    backgroundColor: Colors.black87,
+    position: Alignment.topLeft,
+    borderRadius: 16.0,
+    timeTextStyle: TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.bold,
+    ),
+  ),
+  controlConfig: ControlButtonConfig(
+    pauseColor: Colors.blue,
+    stopColor: Colors.red,
+    cancelColor: Colors.grey,
+    buttonSize: 40.0,
+    iconSize: 20.0,
+  ),
+);
+```
+
+### Audio Capture Modes
+
+```dart
+// No audio
+audioCaptureMode: AudioCaptureMode.none
+
+// System audio only (what you hear on computer)
+audioCaptureMode: AudioCaptureMode.system
+
+// Microphone only
+audioCaptureMode: AudioCaptureMode.microphone
+
+// Both system and microphone
+audioCaptureMode: AudioCaptureMode.both
+```
+
+### Custom Position
+
+```dart
+indicatorConfig: RecordingIndicatorConfig(
+  // Use predefined positions
+  position: Alignment.bottomRight,
+  
+  // Or use custom offset
+  customOffset: Offset(20, 20),
+)
+```
+
+### With Logging
+
+```dart
+await ScreenRecorder.startRecording(
+  context,
+  enableLogging: true, // Logs to DevTools (debug mode only)
+  onLog: (message, {level, error, stackTrace}) {
+    // Custom logging callback
+    if (level == RecordingLogLevel.error) {
+      print('❌ ERROR: $message');
+    } else {
+      print('📹 $message');
+    }
+  },
+);
+```
+
+### Disable Logging
+
+```dart
+await ScreenRecorder.startRecording(
+  context,
+  enableLogging: false, // Silent mode
+);
+```
+
+## Configuration Options
+
+### RecordingConfig
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `idealWidth` | `int` | `1920` | Target video width |
+| `idealHeight` | `int` | `1080` | Target video height |
+| `idealFrameRate` | `int` | `30` | Target frame rate |
+| `videoBitsPerSecond` | `int` | `5000000` | Video bitrate (5 Mbps) |
+| `captureAudio` | `bool` | `true` | Enable audio capture |
+| `showCursor` | `bool` | `true` | Show cursor in recording |
+| `audioCaptureMode` | `AudioCaptureMode` | `system` | Audio source |
+
+### RecordingIndicatorConfig
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `recordingColor` | `Color` | `Colors.red` | Recording indicator color |
+| `pausedColor` | `Color` | `Colors.orange` | Paused state color |
+| `backgroundColor` | `Color` | `Colors.black87` | Indicator background |
+| `borderWidth` | `double` | `2.0` | Border thickness |
+| `borderRadius` | `double` | `12.0` | Corner radius |
+| `position` | `Alignment` | `topRight` | Indicator position |
+| `customOffset` | `Offset?` | `null` | Custom position |
+| `timeTextStyle` | `TextStyle?` | `null` | Time display style |
+| `statusTextStyle` | `TextStyle?` | `null` | Status text style |
+
+### ControlButtonConfig
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `pauseIcon` | `IconData?` | `Icons.pause` | Pause button icon |
+| `playIcon` | `IconData?` | `Icons.play_arrow` | Resume button icon |
+| `stopIcon` | `IconData?` | `Icons.stop` | Stop button icon |
+| `cancelIcon` | `IconData?` | `Icons.close` | Cancel button icon |
+| `pauseColor` | `Color` | `Colors.orange` | Pause button color |
+| `stopColor` | `Color` | `Colors.red` | Stop button color |
+| `cancelColor` | `Color` | `Colors.grey` | Cancel button color |
+| `buttonSize` | `double` | `32.0` | Button size |
+| `iconSize` | `double` | `18.0` | Icon size |
+| `spacing` | `double` | `8.0` | Button spacing |
+
+## RecordingResult
+
+The `RecordingResult` object contains:
+
+```dart
+class RecordingResult {
+  final Uint8List fileBytes;      // Video data
+  final String fileName;           // Generated filename
+  final String mimeType;           // 'video/webm'
+  final String blobUrl;            // Blob URL for preview
+  final int durationSeconds;       // Recording duration
+  
+  Map<String, dynamic> toMap();    // Convert to map
+}
+```
+
+## Logging
+
+The package provides flexible logging options:
+
+```dart
+// View logs in Flutter DevTools (debug mode only)
+enableLogging: true  // Default
+
+// Custom logging callback
+onLog: (message, {level, error, stackTrace}) {
+  switch (level) {
+    case RecordingLogLevel.debug:
+      debugPrint('🔍 $message');
+      break;
+    case RecordingLogLevel.info:
+      print('ℹ️ $message');
+      break;
+    case RecordingLogLevel.warning:
+      print('⚠️ $message');
+      break;
+    case RecordingLogLevel.error:
+      print('❌ $message: $error');
+      break;
+  }
+}
+
+// Completely disable logging
+enableLogging: false
+```
+
+### Log Levels
+
+- `RecordingLogLevel.debug` - Detailed info (tracks, chunks)
+- `RecordingLogLevel.info` - General info (started, stopped)
+- `RecordingLogLevel.warning` - Warnings (mic unavailable)
+- `RecordingLogLevel.error` - Errors with stack traces
+
+## Permissions
+
+The browser will prompt users to:
+1. **Select screen/window/tab** - Choose what to record
+2. **Grant audio permissions** - If audio capture is enabled
+
+Users must grant these permissions for recording to work.
+
+## Common Use Cases
+
+### Upload to Server
+
+```dart
+onRecordingComplete: (result) async {
+  final response = await http.post(
+    Uri.parse('https://api.example.com/upload'),
+    headers: {'Content-Type': 'video/webm'},
+    body: result.fileBytes,
+  );
+  print('Uploaded: ${response.statusCode}');
+}
+```
+
+### Save to Local Storage
+
+```dart
+onRecordingComplete: (result) {
+  // Trigger browser download
+  final anchor = html.AnchorElement(href: result.blobUrl)
+    ..setAttribute('download', result.fileName)
+    ..click();
+}
+```
+
+### Convert to Base64
+
+```dart
+onRecordingComplete: (result) {
+  final base64Video = base64Encode(result.fileBytes);
+  // Send to API or save to database
+}
+```
+
+## Example App
+
+Check the [example](example) folder for a complete working demo with all features.
+
+To run the example:
+
+```bash
+cd example
+flutter run -d chrome
+```
+
+## Troubleshooting
+
+### Recording doesn't start
+- Ensure you're running on web platform
+- Check browser compatibility
+- User must grant screen capture permission
+
+### No audio in recording
+- Some browsers don't support system audio capture
+- Check `audioCaptureMode` setting
+- User must grant microphone permission
+
+### Poor video quality
+- Increase `videoBitsPerSecond` in `RecordingConfig`
+- Increase `idealWidth` and `idealHeight`
+- Increase `idealFrameRate` for smoother video
+
+### Large file sizes
+- Decrease `videoBitsPerSecond`
+- Lower `idealWidth` and `idealHeight`
+- Reduce `idealFrameRate`
+
+## Limitations
+
+- Web platform only (uses browser MediaRecorder API)
+- Safari not supported (no Screen Capture API)
+- System audio may not work in all browsers
+- WebM format only
+- Maximum recording length depends on browser memory
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+- 📧 Report issues on [GitHub](https://github.com/logicpixel31/flutter_web_record/issues)
+- 💬 Questions? Open a discussion
+- ⭐ Star the repo if you find it useful!
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for version history.

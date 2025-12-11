@@ -1,0 +1,8 @@
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    # We use developer.log() instead of print in production
+    avoid_print: false
+    # This is a web-only package
+    avoid_web_libraries_in_flutter: false
