@@ -1,6 +1,6 @@
 name: flutter_web_record
 description: A Flutter web package for screen recording with audio support, pause/resume controls, customizable UI, and preview functionality.
-version: 0.1.1
+version: 0.1.2
 homepage: https://github.com/logicpixel31/flutter_web_record
 repository: https://github.com/logicpixel31/flutter_web_record
 issue_tracker: https://github.com/logicpixel31/flutter_web_record/issues

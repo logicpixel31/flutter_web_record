@@ -1,3 +1,6 @@
+## 0.1.2
+* Verified plugin works on the latest stable Safari (Safari 26)
+
 ## 0.1.1
 
 * Migrated from deprecated `dart:html` and `dart:js_util` to `package:web` and `dart:js_interop`
