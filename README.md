@@ -48,13 +48,15 @@ A powerful Flutter web package for screen recording with audio support, pause/re
 
 ## Browser Compatibility
 
-| Browser | Support | Notes |
-|---------|---------|-------|
-| Chrome  | ✅ 72+  | Full support |
-| Edge    | ✅ 79+  | Full support |
-| Opera   | ✅ 60+  | Full support |
-| Firefox | ⚠️      | Requires flag |
-| Safari  | ❌      | Not supported |
+| Browser | Support           | Notes         |
+|---------|-------------------|---------------|
+| Chrome  | ✅ 72+            | Full support  |
+| Edge    | ✅ 79+            | Full support  |
+| Opera   | ✅ 60+            | Full support  |
+| Safari  | ✅ tested on V26  | Supported     |
+| Firefox | ⚠️                | Requires flag |
+-----------------------------------------------
+
 
 ## Installation
 
